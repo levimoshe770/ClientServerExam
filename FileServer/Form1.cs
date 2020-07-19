@@ -20,7 +20,18 @@ namespace FileServer
 
         private void OnOpenListenerClick(object sender, MouseEventArgs e)
         {
+            int port;
+            if (int.TryParse(txtPort.Text, out port))
+            {
+                ServerConfig.Port = port;
+                ServerConfig.HomeFolder = txtFolder.Text;
 
+                m_ServerCommHandler = new ServerCommHandler();
+
+                return;
+            }
+
+            MessageBox.Show("Invalid port. Should be int");
         }
 
         private void OnChooseFolderClick(object sender, EventArgs e)
@@ -32,5 +43,7 @@ namespace FileServer
                 txtFolder.Text = folderBrowserDialog1.SelectedPath;
             }
         }
+
+        private ServerCommHandler m_ServerCommHandler;
     }
 }

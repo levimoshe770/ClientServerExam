@@ -108,6 +108,10 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\AlgoTrade.ATMessageHandler\MessageHandler.csproj">
+      <Project>{3f4ce297-c7d4-4028-a7a7-f379e61a4581}</Project>
+      <Name>MessageHandler</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Communicator\Communicator.csproj">
       <Project>{8c494f00-2407-41e9-99b0-0ad1a84fd1e5}</Project>
       <Name>Communicator</Name>

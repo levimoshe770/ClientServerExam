@@ -53,6 +53,7 @@
             this.toolStripStatusConnect = new System.Windows.Forms.ToolStripStatusLabel();
             this.toolStripStatusUser = new System.Windows.Forms.ToolStripStatusLabel();
             this.loginToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.logoutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             this.groupBox1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.mainSplit)).BeginInit();
@@ -103,6 +104,7 @@
             // 
             this.usersToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.loginToolStripMenuItem,
+            this.logoutToolStripMenuItem,
             this.createNewUserToolStripMenuItem,
             this.deleteUserToolStripMenuItem});
             this.usersToolStripMenuItem.Name = "usersToolStripMenuItem";
@@ -111,8 +113,9 @@
             // 
             // createNewUserToolStripMenuItem
             // 
+            this.createNewUserToolStripMenuItem.Enabled = false;
             this.createNewUserToolStripMenuItem.Name = "createNewUserToolStripMenuItem";
-            this.createNewUserToolStripMenuItem.Size = new System.Drawing.Size(158, 22);
+            this.createNewUserToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.createNewUserToolStripMenuItem.Text = "Create new user";
             this.createNewUserToolStripMenuItem.Click += new System.EventHandler(this.OnCreateNewUser);
             // 
@@ -280,10 +283,19 @@
             // 
             // loginToolStripMenuItem
             // 
+            this.loginToolStripMenuItem.Enabled = false;
             this.loginToolStripMenuItem.Name = "loginToolStripMenuItem";
             this.loginToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.loginToolStripMenuItem.Text = "Login";
             this.loginToolStripMenuItem.Click += new System.EventHandler(this.OnUserLoginClick);
+            // 
+            // logoutToolStripMenuItem
+            // 
+            this.logoutToolStripMenuItem.Enabled = false;
+            this.logoutToolStripMenuItem.Name = "logoutToolStripMenuItem";
+            this.logoutToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.logoutToolStripMenuItem.Text = "Logout";
+            this.logoutToolStripMenuItem.Click += new System.EventHandler(this.OnUserLogoutClick);
             // 
             // frmMain
             // 
@@ -340,6 +352,7 @@
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusConnect;
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusUser;
         private System.Windows.Forms.ToolStripMenuItem loginToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem logoutToolStripMenuItem;
     }
 }
 

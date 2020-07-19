@@ -14,6 +14,8 @@ namespace Client
 {
     public partial class CreateUser : Form
     {
+        #region Constructor
+
         public CreateUser(ServerProxy pServerProxy)
         {
             InitializeComponent();
@@ -21,10 +23,24 @@ namespace Client
             m_ServerProxy = pServerProxy;
         }
 
+        #endregion
+
+        #region Public
+
+        #region Properties
+
         public UserData UserData
         { 
             get { return m_UserData; }
         }
+
+        #endregion
+
+        #endregion
+
+        #region Private
+
+        #region Winform event handlers
 
         private void OnCreateClick(object sender, EventArgs e)
         {
@@ -39,7 +55,8 @@ namespace Client
                 m_UserData = new UserData()
                 {
                     UserName = txtUserName.Text,
-                    Password = txtPassword.Text
+                    Password = txtPassword.Text,
+                    HomePath = ""
                 };
                 m_ServerProxy.UserCreated += OnUserCreated;
                 m_ServerProxy.CreateNewUser(m_UserData);
@@ -58,22 +75,41 @@ namespace Client
             Close();
         }
 
+        #endregion
+
+        #region Event handlers
+
         private void OnUserCreated(string pHomePath)
         {
-            if (pHomePath != "err")
+            if (InvokeRequired)
             {
-                m_UserData.HomePath = pHomePath;
-                DialogResult = DialogResult.OK;
+                BeginInvoke(new dlgUserCreated(OnUserCreated), new object[] { pHomePath });
             }
             else
             {
-                DialogResult = DialogResult.No;
-            }
+                if (pHomePath != "err")
+                {
+                    m_UserData.HomePath = pHomePath;
+                    DialogResult = DialogResult.OK;
+                }
+                else
+                {
+                    DialogResult = DialogResult.No;
+                }
 
-            Close();
+                Close();
+            }
         }
+
+        #endregion
+
+        #region Members
 
         private ServerProxy m_ServerProxy;
         private UserData m_UserData;
+
+        #endregion
+
+        #endregion
     }
 }

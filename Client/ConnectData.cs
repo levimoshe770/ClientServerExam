@@ -12,12 +12,18 @@ namespace Client
 {
     public partial class ConnectData : Form
     {
+        #region Constructor
         public ConnectData(ServerProxy pServerProxy)
         {
             InitializeComponent();
 
             m_ServerProxy = pServerProxy;
         }
+        #endregion
+
+        #region Private
+
+        #region Winform event handlers
 
         private void OnConnectClick(object sender, EventArgs e)
         {
@@ -48,21 +54,39 @@ namespace Client
             Close();
         }
 
+        #endregion
+
+        #region Event handlers
+
         private void OnServerConnected(bool pStatus)
         {
-            if (pStatus)
+            if (InvokeRequired)
             {
-                DialogResult = DialogResult.OK;
+                BeginInvoke(new dlgConnected(OnServerConnected), new object[] { pStatus });
             }
             else
             {
-                DialogResult = DialogResult.No;
-            }
+                if (pStatus)
+                {
+                    DialogResult = DialogResult.OK;
+                }
+                else
+                {
+                    DialogResult = DialogResult.No;
+                }
 
-            Close();
+                Close();
+            }
         }
+
+        #endregion
+
+        #region Members
 
         private ServerProxy m_ServerProxy;
 
+        #endregion
+
+        #endregion
     }
 }

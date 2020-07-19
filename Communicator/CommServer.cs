@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq.Expressions;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -20,11 +22,24 @@ namespace Communicator
         public CommServer(int pPort, string pId)
         {
             m_Id = pId;
-            m_Server = new TcpListener(IPAddress.Parse("127.0.0.1"),pPort);
 
-            m_ListeningThread = new Thread(Listener);
-            m_ListeningThread.Name = "TCP Listening " + pId;
-            m_ListeningThread.Start();
+            try 
+            {
+                IPAddress ipAddress =
+                    (from ip in Dns.GetHostEntry(Dns.GetHostName()).AddressList
+                     where ip.AddressFamily == AddressFamily.InterNetwork
+                     select ip).First();
+                IPEndPoint ipEndPoint = new IPEndPoint(ipAddress, pPort);
+                m_Server = new TcpListener(ipEndPoint);
+
+                m_ListeningThread = new Thread(Listener);
+                m_ListeningThread.Name = "TCP Listening " + pId;
+                m_ListeningThread.Start();
+            }
+            catch (Exception e)
+            {
+                Logger.Logger.Log("Failed to open server socket: {0}", e.Message);
+            }
         }
 
         #endregion

@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Net;
 using System.Net.Sockets;
 using System.Threading;
+using System.Linq;
 
 namespace Communicator
 {
@@ -59,7 +61,18 @@ namespace Communicator
                 try
                 {
                     m_TcpClient = new TcpClient();
-                    m_TcpClient.Connect(m_RemoteHost, m_Port);
+
+                    if (string.Compare(m_RemoteHost, "localhost") == 0)
+                    {
+                        m_RemoteHost = Dns.GetHostName();
+                    }
+
+                    IPAddress iPAddress =
+                        (from ip in Dns.GetHostEntry(m_RemoteHost).AddressList
+                         where ip.AddressFamily == AddressFamily.InterNetwork
+                         select ip).First();
+                    IPEndPoint iPEndPoint = new IPEndPoint(iPAddress, m_Port);
+                    m_TcpClient.Connect(iPEndPoint);
                     if (m_TcpClient.Connected)
                     {
                         m_TcpReaderWriter = new TcpReaderWriter(m_TcpClient, m_Id);
@@ -137,7 +150,7 @@ namespace Communicator
         private TcpReaderWriter m_TcpReaderWriter;
         private TcpClient m_TcpClient;
         private Thread m_Connector;
-        private readonly string m_RemoteHost;
+        private string m_RemoteHost;
         private readonly int m_Port;
         private readonly string m_Id;
         private bool m_Connected;

@@ -52,14 +52,14 @@
             this.txtUserName.Location = new System.Drawing.Point(108, 11);
             this.txtUserName.Name = "txtUserName";
             this.txtUserName.Size = new System.Drawing.Size(153, 20);
-            this.txtUserName.TabIndex = 2;
+            this.txtUserName.TabIndex = 1;
             // 
             // txtPasswordConfirm
             // 
             this.txtPasswordConfirm.Location = new System.Drawing.Point(108, 63);
             this.txtPasswordConfirm.Name = "txtPasswordConfirm";
             this.txtPasswordConfirm.Size = new System.Drawing.Size(153, 20);
-            this.txtPasswordConfirm.TabIndex = 6;
+            this.txtPasswordConfirm.TabIndex = 3;
             this.txtPasswordConfirm.UseSystemPasswordChar = true;
             // 
             // label3
@@ -76,7 +76,7 @@
             this.txtPassword.Location = new System.Drawing.Point(108, 37);
             this.txtPassword.Name = "txtPassword";
             this.txtPassword.Size = new System.Drawing.Size(153, 20);
-            this.txtPassword.TabIndex = 8;
+            this.txtPassword.TabIndex = 2;
             this.txtPassword.UseSystemPasswordChar = true;
             // 
             // label4
@@ -93,7 +93,7 @@
             this.btnCreate.Location = new System.Drawing.Point(35, 100);
             this.btnCreate.Name = "btnCreate";
             this.btnCreate.Size = new System.Drawing.Size(86, 30);
-            this.btnCreate.TabIndex = 9;
+            this.btnCreate.TabIndex = 4;
             this.btnCreate.Text = "Create";
             this.btnCreate.UseVisualStyleBackColor = true;
             this.btnCreate.Click += new System.EventHandler(this.OnCreateClick);
@@ -104,7 +104,7 @@
             this.btnCancel.Location = new System.Drawing.Point(139, 100);
             this.btnCancel.Name = "btnCancel";
             this.btnCancel.Size = new System.Drawing.Size(86, 30);
-            this.btnCancel.TabIndex = 10;
+            this.btnCancel.TabIndex = 5;
             this.btnCancel.Text = "Cancel";
             this.btnCancel.UseVisualStyleBackColor = true;
             this.btnCancel.Click += new System.EventHandler(this.OnCancelClick);
@@ -128,6 +128,7 @@
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.Name = "CreateUser";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "CreateUser";
             this.ResumeLayout(false);
             this.PerformLayout();
