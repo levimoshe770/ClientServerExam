@@ -13,9 +13,9 @@ namespace FileServer
     {
         public ServerCommHandler()
         {
-            m_Comm = new CommServer(ServerConfig.Port, "FileServer");
-            m_Comm.CommStatusEvent += OnCommStatus;
-            m_Comm.ReceiveEvent += OnMessageReceive;
+            //m_Comm = new CommServer(ServerConfig.Port, "FileServer");
+            //m_Comm.CommStatusEvent += OnCommStatus;
+            //m_Comm.ReceiveEvent += OnMessageReceive;
 
             // Create DB
 

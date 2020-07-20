@@ -52,12 +52,6 @@
     <Compile Include="ConnectData.Designer.cs">
       <DependentUpon>ConnectData.cs</DependentUpon>
     </Compile>
-    <Compile Include="CreateUser.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="CreateUser.Designer.cs">
-      <DependentUpon>CreateUser.cs</DependentUpon>
-    </Compile>
     <Compile Include="FrmMain.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -67,17 +61,8 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ServerProxy.cs" />
-    <Compile Include="UserLogin.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="UserLogin.Designer.cs">
-      <DependentUpon>UserLogin.cs</DependentUpon>
-    </Compile>
     <EmbeddedResource Include="ConnectData.resx">
       <DependentUpon>ConnectData.cs</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="CreateUser.resx">
-      <DependentUpon>CreateUser.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="FrmMain.resx">
       <DependentUpon>FrmMain.cs</DependentUpon>
@@ -91,9 +76,6 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <EmbeddedResource Include="UserLogin.resx">
-      <DependentUpon>UserLogin.cs</DependentUpon>
-    </EmbeddedResource>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
@@ -119,6 +101,10 @@
     <ProjectReference Include="..\ControlMessages\ControlMessages.csproj">
       <Project>{eed85562-4219-4753-a537-8b5a555e888a}</Project>
       <Name>ControlMessages</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\CryptoManager\CryptoManager.csproj">
+      <Project>{bca18b31-6260-41eb-98fe-8c7b8715881a}</Project>
+      <Name>CryptoManager</Name>
     </ProjectReference>
     <ProjectReference Include="..\FileTransfer\FileTransfer.csproj">
       <Project>{cadbb698-3528-4db3-874e-8b4a4968a3bc}</Project>

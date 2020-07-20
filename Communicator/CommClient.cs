@@ -25,11 +25,6 @@ namespace Communicator
 
         #region ICommInterface
 
-        public int OpenConnections
-        {
-            get { return m_Connected ? 1 : 0; }
-        }
-
         public void Send(byte[] pBuffer)
         {
             if (m_Connected)

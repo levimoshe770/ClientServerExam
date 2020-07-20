@@ -9,18 +9,19 @@ using System.Security.Permissions;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.IO;
 
-namespace Client
+namespace FileServer
 {
     public partial class CreateUser : Form
     {
         #region Constructor
 
-        public CreateUser(ServerProxy pServerProxy)
+        public CreateUser(UserManager pUserManager)
         {
             InitializeComponent();
 
-            m_ServerProxy = pServerProxy;
+            m_UserManager = pUserManager;
         }
 
         #endregion
@@ -52,14 +53,30 @@ namespace Client
 
             try
             {
+                string userPath = string.Format(@"{0}\{1}", ServerConfig.HomeFolder, txtUserName.Text);
                 m_UserData = new UserData()
                 {
                     UserName = txtUserName.Text,
                     Password = txtPassword.Text,
-                    HomePath = ""
+                    HomePath = userPath,
+                    UserRole = "Regular"
+
                 };
-                m_ServerProxy.UserCreated += OnUserCreated;
-                m_ServerProxy.CreateNewUser(m_UserData);
+
+                bool userCreated = m_UserManager.CreateUser(m_UserData);
+
+                // Create user's folder
+                if (!Directory.Exists(userPath))
+                {
+                    Directory.CreateDirectory(userPath);
+                }
+
+                if (userCreated)
+                    DialogResult = DialogResult.OK;
+                else
+                    DialogResult = DialogResult.No;
+
+                Close();
             }
             catch
             {
@@ -79,34 +96,12 @@ namespace Client
 
         #region Event handlers
 
-        private void OnUserCreated(string pHomePath)
-        {
-            if (InvokeRequired)
-            {
-                BeginInvoke(new dlgUserCreated(OnUserCreated), new object[] { pHomePath });
-            }
-            else
-            {
-                if (pHomePath != "err")
-                {
-                    m_UserData.HomePath = pHomePath;
-                    DialogResult = DialogResult.OK;
-                }
-                else
-                {
-                    DialogResult = DialogResult.No;
-                }
-
-                Close();
-            }
-        }
-
         #endregion
 
         #region Members
 
-        private ServerProxy m_ServerProxy;
         private UserData m_UserData;
+        private UserManager m_UserManager;
 
         #endregion
 

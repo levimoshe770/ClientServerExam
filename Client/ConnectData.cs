@@ -1,4 +1,6 @@
-﻿using System;
+﻿using ControlMessages;
+using CryptoManager;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -21,6 +23,8 @@ namespace Client
         }
         #endregion
 
+        public UserData UserData { get { return m_UserData; } }
+
         #region Private
 
         #region Winform event handlers
@@ -38,8 +42,19 @@ namespace Client
 
             try
             {
+                m_UserData = new UserData()
+                {
+                    UserName = txtUserName.Text,
+                    Password = txtPassword.Text
+                };
+
                 m_ServerProxy.ServerConnected += OnServerConnected;
-                m_ServerProxy.Connect(txtHost.Text, port);
+                m_ServerProxy.Connect(
+                    txtHost.Text, 
+                    port,
+                    txtUserName.Text,
+                    CryptoHandler.HashEncode(txtPassword.Text)
+                );
             }
             catch
             {
@@ -73,6 +88,7 @@ namespace Client
                 else
                 {
                     DialogResult = DialogResult.No;
+                    MessageBox.Show("Connection failed");
                 }
 
                 Close();
@@ -84,6 +100,7 @@ namespace Client
         #region Members
 
         private ServerProxy m_ServerProxy;
+        private UserData m_UserData;
 
         #endregion
 

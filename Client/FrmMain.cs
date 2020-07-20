@@ -27,6 +27,7 @@ namespace Client
         private void OnLoad(object sender, EventArgs e)
         {
             m_ServerProxy = new ServerProxy();
+            m_ServerProxy.FileListArrived += OnFileListArrived;
         }
 
         private void OnConnectClick(object sender, EventArgs e)
@@ -35,6 +36,7 @@ namespace Client
             DialogResult res = connectData.ShowDialog();
             if (res == DialogResult.OK)
             {
+                m_UserData = connectData.UserData;
                 SetStateConnected();
             }
         }
@@ -43,33 +45,6 @@ namespace Client
         {
             m_ServerProxy.Disconnect();
             SetStateDisconnected();
-        }
-
-        private void OnCreateNewUser(object sender, EventArgs e)
-        {
-            CreateUser createUser = new CreateUser(m_ServerProxy);
-            DialogResult res = createUser.ShowDialog();
-            if (res == DialogResult.OK)
-            {
-                // Set status to user created
-                SetUserLoggedIn(createUser.UserData);
-            }
-        }
-
-        private void OnDeleteUser(object sender, EventArgs e)
-        {
-            m_ServerProxy.DeleteUser(m_UserData.UserName);
-            SetUserLoggedOut();
-        }
-
-        private void OnNewFolderClick(object sender, EventArgs e)
-        {
-
-        }
-
-        private void OnRemoveFolderClick(object sender, EventArgs e)
-        {
-
         }
 
         private void OnDownloadFileClick(object sender, EventArgs e)
@@ -82,23 +57,25 @@ namespace Client
 
         }
 
-        private void OnUserLoginClick(object sender, EventArgs e)
+        private void OnFileRemoveClick(object sender, EventArgs e)
         {
-            UserLogin userLogin = new UserLogin(m_ServerProxy);
-            DialogResult res = userLogin.ShowDialog();
-            if (res == DialogResult.OK)
+
+        }
+
+        #endregion
+
+        #region Event handlers
+        private void OnFileListArrived(List<string> pFiles)
+        {
+            if (InvokeRequired)
             {
-                m_UserData = userLogin.UserData;
-                SetUserLoggedIn(userLogin.UserData);
+                BeginInvoke(new dlgFileListArrived(OnFileListArrived), pFiles);
+            }
+            else
+            {
+                pFiles.ForEach((file) => { lstFiles.Items.Add(file); });
             }
         }
-
-        private void OnUserLogoutClick(object sender, EventArgs e)
-        {
-            m_ServerProxy.LogoutUser(m_UserData);
-            SetUserLoggedOut();
-        }
-
         #endregion
 
         #region Methods
@@ -110,8 +87,10 @@ namespace Client
             toolStripStatusConnect.ForeColor = Color.Green;
             disconnectToolStripMenuItem.Enabled = true;
             connectToolStripMenuItem.Enabled = false;
-            loginToolStripMenuItem.Enabled = true;
-            createNewUserToolStripMenuItem.Enabled = true;
+            toolStripStatusUser.Text = string.Format("Hello {0}", m_UserData.UserName);
+
+            // Set tree view
+            PopulateFileList();
         }
 
         private void SetStateDisconnected()
@@ -121,45 +100,19 @@ namespace Client
             toolStripStatusConnect.ForeColor = Color.Red;
             disconnectToolStripMenuItem.Enabled = false;
             connectToolStripMenuItem.Enabled = true;
-            loginToolStripMenuItem.Enabled = false;
-            createNewUserToolStripMenuItem.Enabled = false;
+            toolStripStatusUser.Text = "No user";
+
+            EmptyFileList();
         }
 
-        private void SetUserLoggedIn(UserData userData)
+        private void EmptyFileList()
         {
-            toolStripStatusUser.Text = string.Format("Hello {0}", userData.UserName);
-            txtCurrentFolder.Text = userData.HomePath;
-            loginToolStripMenuItem.Enabled = false;
-            logoutToolStripMenuItem.Enabled = true;
-            deleteUserToolStripMenuItem.Enabled = true;
-
-            // Set tree view
-            PopulateTree();
-
-            // Set folder view
+            lstFiles.Items.Clear();
         }
 
-        private void SetUserLoggedOut()
+        private void PopulateFileList()
         {
-            toolStripStatusUser.Text = string.Format("No user logged in");
-            txtCurrentFolder.Text = "";
-            loginToolStripMenuItem.Enabled = true;
-            logoutToolStripMenuItem.Enabled = false;
-            deleteUserToolStripMenuItem.Enabled = false;
-
-            // Set tree view
-            // Set folder view
-        }
-
-        private void PopulateTree()
-        {
-            m_ServerProxy.FolderListArrived += OnFolderListArrived;
-            m_ServerProxy.GetFolders();
-        }
-
-        private void OnFolderListArrived(List<string> pFolders)
-        {
-            throw new NotImplementedException();
+            m_ServerProxy.GetFiles();
         }
 
         #endregion
@@ -168,6 +121,7 @@ namespace Client
 
         private ServerProxy m_ServerProxy;
         private UserData m_UserData;
+
 
         #endregion
 

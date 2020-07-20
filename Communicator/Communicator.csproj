@@ -62,6 +62,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CommClient.cs" />
+    <Compile Include="CommConnection.cs" />
     <Compile Include="CommServer.cs" />
     <Compile Include="ICommInterface.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

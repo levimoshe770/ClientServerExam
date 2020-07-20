@@ -12,8 +12,6 @@
 
     public interface ICommInterface
     {
-        int OpenConnections { get; }
-        //string ConnectedId { get; }
         void Send(byte[] pBuffer);
         void Close();
         event ReceiveDlg ReceiveEvent;

@@ -12,24 +12,43 @@ namespace DataLayer
     {
         public void ExecuteNonQuery (string pSqlCommand)
         {
-            m_Conn = OpenConnection();
-            SQLiteCommand cmd = m_Conn.CreateCommand();
-            cmd.CommandText = pSqlCommand;         
-            cmd.ExecuteNonQuery();
-            m_Conn.Close();
+            Logger.Logger.Log("NonQuery: {0}", pSqlCommand);
+
+            using (m_Conn = OpenConnection())
+            {
+                using (SQLiteCommand cmd = m_Conn.CreateCommand())
+                {
+                    cmd.CommandText = pSqlCommand;
+                    cmd.ExecuteNonQuery();
+                }
+
+                m_Conn.Close();
+            }
         }
 
         public SQLiteDataReader ExecuteReader(string pSqlCommand)
         {
+            Logger.Logger.Log("ExecuteReader: {0}", pSqlCommand);
             m_Conn = OpenConnection();
             SQLiteCommand cmd = m_Conn.CreateCommand();
             cmd.CommandText = pSqlCommand;
             return cmd.ExecuteReader();
         }
 
+        public SQLiteDataAdapter ExecuteAdapter(string pSqlCommand)
+        {
+            Logger.Logger.Log("ExecuteAdapter: {0}", pSqlCommand);
+            m_Conn = OpenConnection();
+            SQLiteCommand cmd = m_Conn.CreateCommand();
+            cmd.CommandText = pSqlCommand;
+            return new SQLiteDataAdapter(cmd);
+        }
+
         public void CloseConnection()
         {
+            Logger.Logger.Log("Connection close");
             m_Conn.Close();
+            m_Conn.Dispose();
         }
 
         public bool TableExists(string pTableName)
@@ -43,15 +62,21 @@ namespace DataLayer
                 cnt = dr.GetInt32(0);
             }
 
+            dr.Close();
+            dr.Dispose();
+            CloseConnection();
+
             return cnt > 0;
         }
 
         private SQLiteConnection OpenConnection()
         {
+            Logger.Logger.Log("Connection open");
             SQLiteConnection conn = new SQLiteConnection("Data Source=database.db;Version=3;New=True;Compress=True");
             try
             {
-                conn.Open();
+                if (conn.State != System.Data.ConnectionState.Open)
+                    conn.Open();
             }
             catch (Exception e)
             {

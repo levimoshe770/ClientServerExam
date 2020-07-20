@@ -9,7 +9,9 @@ using Logger;
 
 namespace Communicator
 {
-    public class CommServer : ICommInterface
+    public delegate void dlgClientConnected(CommConnection pClient);
+
+    public class CommServer
     {
         private class CommClientInternal
         {
@@ -19,10 +21,8 @@ namespace Communicator
 
         #region Constructor
 
-        public CommServer(int pPort, string pId)
+        public CommServer(int pPort)
         {
-            m_Id = pId;
-
             try 
             {
                 IPAddress ipAddress =
@@ -33,7 +33,7 @@ namespace Communicator
                 m_Server = new TcpListener(ipEndPoint);
 
                 m_ListeningThread = new Thread(Listener);
-                m_ListeningThread.Name = "TCP Listening " + pId;
+                m_ListeningThread.Name = "TCP Listening ";
                 m_ListeningThread.Start();
             }
             catch (Exception e)
@@ -44,40 +44,19 @@ namespace Communicator
 
         #endregion
 
-        #region ICommInterface
+        #region Public
 
-        public int OpenConnections
-        {
-            get 
-            { 
-                if (m_Client != null) return 1;
-                return 0;
-            }
-        }
+        #region Events
 
-        public void Send(byte[] pBuffer)
-        {
-            m_Client.TcpReaderWriter.Send(pBuffer);
-        }
-
-        public void Close()
-        {
-            m_Client.TcpReaderWriter.Abort();
-        }
-
-        public event ReceiveDlg ReceiveEvent;
-
-        public event CommStatusDlg CommStatusEvent;
+        public event dlgClientConnected ClientConnected;
 
         #endregion
 
-        #region Private methods
+        #endregion
 
-        //private void HandleTcpClientException(Exception pException, TcpReaderWriter pTcpReaderWriter)
-        //{
-        //    ATLogger.AtLogger.sLogger.Critical(pTcpReaderWriter.Id + pException.ToString());
-        //    throw pException;
-        //}
+        #region Private
+
+        #region Listener thread methods
 
         private void Listener()
         {
@@ -88,16 +67,7 @@ namespace Communicator
                 while (true)
                 {
                     TcpClient newClient = m_Server.AcceptTcpClient();
-                    CommClientInternal client = new CommClientInternal
-                                                    {
-                                                        TcpReaderWriter = new TcpReaderWriter(newClient, m_Id),
-                                                        Id = ""
-                                                    };
-                    client.TcpReaderWriter.TcpReaderWriterAbortedEvent += OnTcpReaderWriterAborted;
-                    client.TcpReaderWriter.ReceiveEvent += OnMsgReceive;
-                    client.TcpReaderWriter.ConnectedIdSetEvent += OnConnectedIdSet;
-
-                    m_Client = client;
+                    ClientConnected?.Invoke(new CommConnection(newClient, Id));
                 }
             }
             catch (Exception e)
@@ -108,43 +78,19 @@ namespace Communicator
             
         }
 
-        private void OnConnectedIdSet(uint pId, string pConnectedid)
-        {
-            m_Client.Id = pConnectedid;
- 
-            RaiseCommStatusEvent(CommStatusEn.Connected, pConnectedid);
-       }
-
-        private void OnTcpReaderWriterAborted(AbortReasonEn pReason, uint pId)
-        {
-            RaiseCommStatusEvent(CommStatusEn.Disconnected, m_Client.Id);
-        }
-
-        private void OnMsgReceive(byte[] pBytes, uint pId)
-        {
-            RaiseReceiveEvent(pBytes);
-        }
-
-        private void RaiseReceiveEvent(byte[] pBytes)
-        {
-            ReceiveEvent?.Invoke(pBytes);
-        }
-
-        private void RaiseCommStatusEvent(CommStatusEn pCommStatus, string pCommId)
-        {
-            CommStatusEvent?.Invoke(pCommStatus, pCommId);
-        }
-
         #endregion
 
         #region Members
 
         private readonly TcpListener m_Server;
-        private CommClientInternal m_Client;
         private readonly Thread m_ListeningThread;
-        //private string m_ConnectedId;
-        private readonly string m_Id;
-        
+
+        #endregion
+
+        #region Constants
+        private const string Id = "FileServer";
+        #endregion
+
         #endregion
     }
 }

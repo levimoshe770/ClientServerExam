@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net.Configuration;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 using Communicator;
 using ControlMessages;
 using MessageHandler;
@@ -11,9 +12,7 @@ using MessageHandler;
 namespace Client
 {
     public delegate void dlgConnected(bool pStatus);
-    public delegate void dlgUserLoggedIn(bool pStatus);
-    public delegate void dlgUserCreated(string pHomePath);
-    public delegate void dlgFolderList(List<string> pFolders);
+    public delegate void dlgFileListArrived(List<string> pFiles);
 
     public class ServerProxy
     {
@@ -21,8 +20,11 @@ namespace Client
 
         #region Methods
 
-        public void Connect(string pHost, int pPort)
+        public void Connect(string pHost, int pPort, string pUserName, string pPassword)
         {
+            m_UserName = pUserName;
+            m_Password = pPassword;
+
             m_Comm = new CommClient(pHost, pPort, "FileClient");
             m_Comm.CommStatusEvent += OnCommStatusEvent;
             m_Comm.ReceiveEvent += OnMessageReceived;
@@ -31,40 +33,6 @@ namespace Client
         public void Disconnect()
         {
             m_Comm.Close();
-        }
-
-        public void CreateNewUser(UserData pUser)
-        {
-            CreateUserMessage msg = new CreateUserMessage() 
-            { 
-                UserName = pUser.UserName,
-                Password = pUser.Password,
-                HomePath = pUser.HomePath
-            };
-
-            byte[] buffer = MessageConverter<CreateUserMessage>.ObjectToRawMessage(msg);
-
-            m_Comm.Send(buffer);
-        }
-
-        public void DeleteUser(string pUserName)
-        {
-
-        }
-
-        public void CreateFolder(string pPath)
-        {
-
-        }
-
-        public void RemoveFolder(string pPath)
-        {
-
-        }
-
-        public void LoginUser(UserData pUserData)
-        {
-
         }
 
         public void DownloadFile(string pRemotePath, string pLocalPath)
@@ -77,19 +45,13 @@ namespace Client
 
         }
 
-        public void GetFolders()
+        public void GetFiles()
         {
-            
-        }
+            GetFilesMsg msg = new GetFilesMsg();
 
-        public List<string> GetFiles(string pPath)
-        {
-            return new List<string>();
-        }
+            byte[] buffer = MessageConverter<GetFilesMsg>.ObjectToRawMessage(msg);
 
-        public void LogoutUser(UserData m_UserData)
-        {
-            throw new NotImplementedException();
+            m_Comm.Send(buffer);
         }
 
         #endregion
@@ -97,9 +59,7 @@ namespace Client
         #region Events
 
         public event dlgConnected ServerConnected;
-        public event dlgUserLoggedIn UserLoggedIn;
-        public event dlgUserCreated UserCreated;
-        public event dlgFolderList FolderListArrived;
+        public event dlgFileListArrived FileListArrived;
 
         #endregion
 
@@ -115,17 +75,52 @@ namespace Client
         {
             string msgId = MessageConverter.GetMessageId(pBuffer);
 
-            if (string.Compare(msgId, "CreateUserMessage") == 0)
+            if (string.Compare(msgId, "UserValidationStatus") == 0)
             {
-                CreateUserMessage msg = MessageConverter<CreateUserMessage>.RawMessageToObject(pBuffer);
+                UserValidationStatus msg = MessageConverter<UserValidationStatus>.RawMessageToObject(pBuffer);
 
-                UserCreated?.Invoke(msg.HomePath);
+                if (msg.Validated)
+                {
+                    Logger.Logger.Log("Connection successful");
+                    ServerConnected?.Invoke(true);
+                }
+                else
+                {
+                    Logger.Logger.Log("User is invalid");
+                    ServerConnected?.Invoke(false);
+                }
+            }
+            else if (string.Compare(msgId, "FileListBegin") == 0)
+            {
+                m_FileList = new List<string>();
+            }
+            else if (string.Compare(msgId, "FileMsg") == 0)
+            {
+                FileMsg msg = MessageConverter<FileMsg>.RawMessageToObject(pBuffer);
+
+                m_FileList.Add(msg.FileName);
+            }
+            else if (string.Compare(msgId, "FileListEnd") == 0)
+            {
+                FileListArrived?.Invoke(m_FileList);
             }
         }
 
         private void OnCommStatusEvent(CommStatusEn pCommStatus, string pCommId)
         {
-            ServerConnected?.Invoke(pCommStatus == CommStatusEn.Connected);
+            if (pCommStatus == CommStatusEn.Connected)
+            {
+                // Send validation message
+                ValidateUserMessage msg = new ValidateUserMessage()
+                {
+                    UserName = m_UserName,
+                    Password = m_Password
+                };
+
+                byte[] buffer = MessageConverter<ValidateUserMessage>.ObjectToRawMessage(msg);
+
+                m_Comm.Send(buffer);
+            }
         }
 
         #endregion
@@ -135,6 +130,9 @@ namespace Client
         #region Members
 
         private ICommInterface m_Comm;
+        private string m_UserName;
+        private string m_Password;
+        private List<string> m_FileList;
 
         #endregion
 
