@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Globalization;
 using System.Reflection;
+using System.Security.Cryptography;
 using System.Text;
 using static System.String;
 
@@ -10,9 +11,19 @@ namespace MessageHandler
     {
         public static string GetMessageId(byte[] pBuffer)
         {
+            for (int i=0; i<pBuffer.Length; i++)
+            {
+                if ((char)pBuffer[i] == ',')
+                {
+                    byte[] subBuffer = new byte[i];
+                    Array.Copy(pBuffer, subBuffer, i);
+                    return Encoding.ASCII.GetString(subBuffer);
+                }
+            }
+
             string message = Encoding.ASCII.GetString(pBuffer);
 
-            return message.Split(',')[0];
+            return message;
         }
     }
 
@@ -24,6 +35,11 @@ namespace MessageHandler
 
         public static T RawMessageToObject(byte[] pBuffer)
         {
+            if (MessageIsBlob())
+            {
+                return BlobToObject(pBuffer);
+            }
+
             string messageString = Encoding.ASCII.GetString(pBuffer);
 
             //Logger.LoggerSingle.Debug("Msg To Obj: {0}", messageString);
@@ -33,6 +49,11 @@ namespace MessageHandler
 
         public static byte[] ObjectToRawMessage(T pObject)
         {
+            if (MessageIsBlob())
+            {
+                return ObjectToBlob(pObject);
+            }
+
             string messageString = ObjectToMessageString(pObject);
 
             //Logger.LoggerSingle.Debug("Obj to Msg: {0}", messageString);
@@ -141,6 +162,125 @@ namespace MessageHandler
 
         #region Methods
 
+        #region Blob handlers
+
+        private static byte[] ObjectToBlob(T pObject)
+        {
+            string header;
+
+            if (!MessageClassAtributeFound(out header))
+                return null;
+
+            header += ",";
+
+            PropertyInfo blobProperty = GetBlobProperty();
+
+            byte[] blob = (byte[])blobProperty.GetValue(pObject);
+
+            byte[] headerBlob = Encoding.ASCII.GetBytes(header);
+
+            byte[] res = new byte[blob.Length + headerBlob.Length];
+
+            Array.Copy(headerBlob, 0, res, 0, headerBlob.Length);
+
+            Array.Copy(blob, 0, res, headerBlob.Length, blob.Length);
+
+            return res;
+        }
+
+        private static PropertyInfo GetBlobProperty()
+        {
+            foreach (PropertyInfo p in typeof(T).GetProperties())
+            {
+                Attribute[] attrs = (Attribute[])p.GetCustomAttributes();
+
+                foreach (Attribute attr in attrs)
+                {
+                    if (attr is MessageFieldAttribute)
+                    {
+                        MessageFieldAttribute fa = (MessageFieldAttribute)attr;
+
+                        if (fa.FieldType == MessageFieldTypesEn.Blob)
+                            return p;
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        private static bool MessageIsBlob()
+        {
+            bool res = false;
+            foreach (Attribute a in typeof(T).GetCustomAttributes())
+            {
+                if (a is MessageClassAttribute && ((MessageClassAttribute)a).Blob)
+                {
+                    res = true;
+                    break;
+                }
+            }
+
+            if (res)
+                res = res && MessageContainsOneBlob();
+
+            return res;
+        }
+
+        private static bool MessageContainsOneBlob()
+        {
+            int cnt = 0;
+            foreach (PropertyInfo p in typeof(T).GetProperties())
+            {
+                Attribute[] attrs = (Attribute[])p.GetCustomAttributes();
+
+                foreach (Attribute attr in attrs)
+                {
+                    if (attr is MessageFieldAttribute)
+                    {
+                        MessageFieldAttribute fa = (MessageFieldAttribute)attr;
+
+                        if (fa.FieldType == MessageFieldTypesEn.Blob) cnt++;
+
+                        if (cnt > 1)
+                            return false;
+                    }
+                }
+            }
+
+            return cnt == 1;
+        }
+
+        private static T BlobToObject(byte[] pBuffer)
+        {
+            string headerString;
+            int commaPosition = 0;
+            for (int i=0; i<pBuffer.Length; i++)
+            {
+                if ((char)pBuffer[i] == ',')
+                {
+                    byte[] subBuffer = new byte[i];
+                    Array.Copy(pBuffer, subBuffer, i);
+                    headerString = Encoding.ASCII.GetString(subBuffer);
+                    commaPosition = i;
+
+                    break;
+                }
+            }
+
+            byte[] blob = new byte[pBuffer.Length - (commaPosition + 1)];
+            Array.Copy(pBuffer, commaPosition + 1, blob, 0, pBuffer.Length - (commaPosition + 1));
+
+            T res = new T();
+
+            PropertyInfo p = GetBlobProperty();
+            p.SetValue(res, (object)blob);
+
+            return res;
+        }
+
+        #endregion
+
         private static object ConvertToValue(string pValue, string pFormat, Type pType)
         {
             if (pType.IsEnum)
@@ -148,6 +288,9 @@ namespace MessageHandler
 
             if (pType.UnderlyingSystemType == typeof(int))
                 return int.Parse(pValue);
+
+            if (pType.UnderlyingSystemType == typeof(long))
+                return long.Parse(pValue);
 
             if (pType.UnderlyingSystemType == typeof(double))
                 return double.Parse(pValue);

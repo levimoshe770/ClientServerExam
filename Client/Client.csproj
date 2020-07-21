@@ -52,6 +52,12 @@
     <Compile Include="ConnectData.Designer.cs">
       <DependentUpon>ConnectData.cs</DependentUpon>
     </Compile>
+    <Compile Include="FileTransferStatus.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FileTransferStatus.Designer.cs">
+      <DependentUpon>FileTransferStatus.cs</DependentUpon>
+    </Compile>
     <Compile Include="FrmMain.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -63,6 +69,9 @@
     <Compile Include="ServerProxy.cs" />
     <EmbeddedResource Include="ConnectData.resx">
       <DependentUpon>ConnectData.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FileTransferStatus.resx">
+      <DependentUpon>FileTransferStatus.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="FrmMain.resx">
       <DependentUpon>FrmMain.cs</DependentUpon>

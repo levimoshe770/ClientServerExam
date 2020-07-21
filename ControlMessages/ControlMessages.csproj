@@ -41,7 +41,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BlobMsg.cs" />
+    <Compile Include="FileTransferComplete.cs" />
+    <Compile Include="RemoveFileMsg.cs" />
+    <Compile Include="RequestFileMsg.cs" />
     <Compile Include="FileListMsgs.cs" />
+    <Compile Include="FileTransferMsg.cs" />
     <Compile Include="GetFilesMsg.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="UserData.cs" />

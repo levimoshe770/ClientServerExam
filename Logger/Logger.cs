@@ -11,7 +11,7 @@ namespace Logger
         {
             string exeName = AppDomain.CurrentDomain.FriendlyName;
             if (exeName.Contains("Server"))
-                sLogFile = @"server.log";
+                sLogFile = @"audit.log";
             else
                 sLogFile = @"client.log";
         }
@@ -28,15 +28,23 @@ namespace Logger
 
         static private void WriteMsgToFile(string pMsg)
         {
-            StackTrace st = new StackTrace(2);
-            using (StreamWriter w = File.AppendText(sLogFile))
+            try
             {
-                w.WriteLine("{0:dd/MM/yyyy HH:mm:ss} - {1} ({2}) - {3} - {4}", 
-                    DateTime.Now,
-                    Path.GetFileName(st.GetFrame(0).GetFileName()),
-                    st.GetFrame(0).GetFileLineNumber(),
-                    st.GetFrame(0).GetMethod(),
-                    pMsg);
+                StackTrace st = new StackTrace(2);
+                using (StreamWriter w = File.AppendText(sLogFile))
+                {
+                    string msg = string.Format("{0:dd/MM/yyyy HH:mm:ss} - {1} ({2}) - {3} - {4}\n",
+                        DateTime.Now,
+                        Path.GetFileName(st.GetFrame(0).GetFileName()),
+                        st.GetFrame(0).GetFileLineNumber(),
+                        st.GetFrame(0).GetMethod(),
+                        pMsg);
+                    w.WriteAsync(msg);
+                }
+            }
+            catch(Exception e)
+            {
+
             }
         }
 

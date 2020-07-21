@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using Communicator;
 using ControlMessages;
+using FileTransfer;
 using MessageHandler;
 
 namespace Client
@@ -35,14 +36,37 @@ namespace Client
             m_Comm.Close();
         }
 
-        public void DownloadFile(string pRemotePath, string pLocalPath)
+        public void DownloadFile(string pFileName, string pLocalPath)
         {
+            m_Localpath = pLocalPath;
 
+            RequestFileMsg msg = new RequestFileMsg()
+            {
+                File = pFileName
+            };
+
+            byte[] buffer = MessageConverter<RequestFileMsg>.ObjectToRawMessage(msg);
+
+            m_Comm.Send(buffer);
         }
 
-        public void UploadFile(string pLocalPath, string pRemotePath)
+        public void UploadFile(string pFileName)
         {
+            FileTransferHandler fh = new FileTransferHandler(m_Comm);
+            fh.FileTransferStatusEvent += OnFileTransferStatusUpdated;
 
+            fh.SendFileToTheOtherSide(pFileName);
+        }
+
+        internal void RemoveFile(string pSelectedFile)
+        {
+            RemoveFileMsg msg = new RemoveFileMsg()
+            {
+                FileName = pSelectedFile
+            };
+
+            byte[] buffer = MessageConverter<RemoveFileMsg>.ObjectToRawMessage(msg);
+            m_Comm.Send(buffer);
         }
 
         public void GetFiles()
@@ -60,6 +84,7 @@ namespace Client
 
         public event dlgConnected ServerConnected;
         public event dlgFileListArrived FileListArrived;
+        public event dlgFileTransferStatus FileTransferStatus;
 
         #endregion
 
@@ -73,39 +98,59 @@ namespace Client
         
         private void OnMessageReceived(byte[] pBuffer)
         {
-            string msgId = MessageConverter.GetMessageId(pBuffer);
-
-            if (string.Compare(msgId, "UserValidationStatus") == 0)
+            try
             {
-                UserValidationStatus msg = MessageConverter<UserValidationStatus>.RawMessageToObject(pBuffer);
+                string msgId = MessageConverter.GetMessageId(pBuffer);
 
-                if (msg.Validated)
+                if (string.Compare(msgId, "UserValidationStatus") == 0)
                 {
-                    Logger.Logger.Log("Connection successful");
-                    ServerConnected?.Invoke(true);
-                }
-                else
-                {
-                    Logger.Logger.Log("User is invalid");
-                    ServerConnected?.Invoke(false);
-                }
-            }
-            else if (string.Compare(msgId, "FileListBegin") == 0)
-            {
-                m_FileList = new List<string>();
-            }
-            else if (string.Compare(msgId, "FileMsg") == 0)
-            {
-                FileMsg msg = MessageConverter<FileMsg>.RawMessageToObject(pBuffer);
+                    UserValidationStatus msg = MessageConverter<UserValidationStatus>.RawMessageToObject(pBuffer);
 
-                m_FileList.Add(msg.FileName);
+                    if (msg.Validated)
+                    {
+                        Logger.Logger.Log("Connection successful");
+                        ServerConnected?.Invoke(true);
+                    }
+                    else
+                    {
+                        Logger.Logger.Log("User is invalid");
+                        ServerConnected?.Invoke(false);
+                    }
+                }
+                else if (string.Compare(msgId, "FileListBegin") == 0)
+                {
+                    m_FileList = new List<string>();
+                }
+                else if (string.Compare(msgId, "FileMsg") == 0)
+                {
+                    FileMsg msg = MessageConverter<FileMsg>.RawMessageToObject(pBuffer);
+
+                    m_FileList.Add(msg.FileName);
+                }
+                else if (string.Compare(msgId, "FileListEnd") == 0)
+                {
+                    FileListArrived?.Invoke(m_FileList);
+                }
+                else if (string.Compare(msgId, "FileTransferMsg") == 0 ||
+                         string.Compare(msgId, "BlobMsg") == 0 ||
+                         string.Compare(msgId, "FileTransferComplete") == 0)
+                {
+                    if (string.Compare(msgId, "FileTransferMsg") == 0)
+                    {
+                        m_FileTransferHandler = new FileTransferHandler(m_Comm);
+                        m_FileTransferHandler.FileTransferStatusEvent += OnFileTransferStatusUpdated;
+                    }
+
+                    m_FileTransferHandler.ReceiveFileFromOtherSide(msgId, pBuffer, m_Localpath);
+                }
             }
-            else if (string.Compare(msgId, "FileListEnd") == 0)
+            catch (Exception e)
             {
-                FileListArrived?.Invoke(m_FileList);
+                Logger.Logger.Log("Handle Message {0},{1}", e.Message,e.StackTrace[1].ToString());
             }
+
         }
-
+        
         private void OnCommStatusEvent(CommStatusEn pCommStatus, string pCommId)
         {
             if (pCommStatus == CommStatusEn.Connected)
@@ -125,6 +170,15 @@ namespace Client
 
         #endregion
 
+        #region General event handlers
+
+        private void OnFileTransferStatusUpdated(int pNumOfChunksCompleted, int pTotalNumOfChunks, int pChunkSize)
+        {
+            FileTransferStatus?.Invoke(pNumOfChunksCompleted, pTotalNumOfChunks, pChunkSize);
+        }
+
+        #endregion
+
         #endregion
 
         #region Members
@@ -133,6 +187,8 @@ namespace Client
         private string m_UserName;
         private string m_Password;
         private List<string> m_FileList;
+        private FileTransferHandler m_FileTransferHandler;
+        private string m_Localpath;
 
         #endregion
 

@@ -145,7 +145,8 @@ namespace Communicator
             }
             catch (Exception e)
             {
-                Logger.Logger.Log(e.Message);
+                Logger.Logger.Log("Receiver {0}, StackTrace {1}, Inner: {2}", e.Message, e.StackTrace, e.InnerException);
+
                 RaiseTcpReaderWriterAbortedEvent(AbortReasonEn.SocketAborted);
             }
         }
@@ -178,7 +179,11 @@ namespace Communicator
 
             // Read packet size
             stream.Read(sizeBuffer, 0, 4);
-            UInt32 size = BitConverter.ToUInt32(sizeBuffer, 0);
+            Int32 size = BitConverter.ToInt32(sizeBuffer, 0);
+            if (size < 0)
+            {
+                throw new Exception("Mismatch in incoming stream. Received negative size");
+            }
 
             // Read control byte
             byte controlByte = (byte) stream.ReadByte();
@@ -203,8 +208,16 @@ namespace Communicator
 
             if (size > 0)
             {
+                //Logger.Logger.Log("Size: {0}", size);
                 // Read packet -- Block read until all the bytes are received
-                stream.Read(buffer, 0, (int)size);
+
+                int totalRead = 0;
+
+                while (totalRead != size)
+                {
+                    int read = stream.Read(buffer, totalRead, size - totalRead);
+                    totalRead += read;
+                }
 
                 byte[] res = new byte[size];
 
@@ -231,7 +244,7 @@ namespace Communicator
 
         #region Const
 
-        private const uint MaxBufferSize = 1000;
+        private const uint MaxBufferSize = 2048 * 1024;
 
         private const byte AbortMsg = 1;
         private const byte DataMsg = 0;

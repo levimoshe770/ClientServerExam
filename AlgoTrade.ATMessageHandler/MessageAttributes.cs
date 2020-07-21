@@ -13,19 +13,26 @@ namespace MessageHandler
     [AttributeUsage(AttributeTargets.Class)]
     public class MessageClassAttribute : Attribute
     {
-        public MessageClassAttribute(string pMessageName)
+        public MessageClassAttribute(string pMessageName) : this(pMessageName, false)
+        {
+        }
+
+        public MessageClassAttribute(string pMessageName, bool pBlob)
         {
             MessageName = pMessageName;
+            Blob = pBlob;
         }
 
         public string MessageName { get; set; }
+        public bool Blob { get; set; }
     }
 
     public enum MessageFieldTypesEn
     {
         Scalar,
         Group,
-        Array    
+        Array,
+        Blob
     }
 
     [AttributeUsage(AttributeTargets.Property)]
@@ -39,6 +46,10 @@ namespace MessageHandler
         {
             FieldType = pFieldType;
             Format = pFormat;
+        }
+
+        public MessageFieldAttribute(MessageFieldTypesEn pFieldType) : this(pFieldType, string.Empty)
+        {
         }
 
         public MessageFieldAttribute(string pFormat) : this(MessageFieldTypesEn.Scalar, pFormat)

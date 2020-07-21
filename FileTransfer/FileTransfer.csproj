@@ -41,7 +41,26 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="FileTransferHandler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\AlgoTrade.ATMessageHandler\MessageHandler.csproj">
+      <Project>{3f4ce297-c7d4-4028-a7a7-f379e61a4581}</Project>
+      <Name>MessageHandler</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Communicator\Communicator.csproj">
+      <Project>{8c494f00-2407-41e9-99b0-0ad1a84fd1e5}</Project>
+      <Name>Communicator</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ControlMessages\ControlMessages.csproj">
+      <Project>{eed85562-4219-4753-a537-8b5a555e888a}</Project>
+      <Name>ControlMessages</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Logger\Logger.csproj">
+      <Project>{9554cae7-06bf-4987-89c9-5b2fe3c92947}</Project>
+      <Name>Logger</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

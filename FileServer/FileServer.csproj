@@ -142,6 +142,10 @@
       <Project>{41ac5436-36e7-435a-bd11-8027fae66f90}</Project>
       <Name>DataLayer</Name>
     </ProjectReference>
+    <ProjectReference Include="..\FileTransfer\FileTransfer.csproj">
+      <Project>{cadbb698-3528-4db3-874e-8b4a4968a3bc}</Project>
+      <Name>FileTransfer</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Logger\Logger.csproj">
       <Project>{9554cae7-06bf-4987-89c9-5b2fe3c92947}</Project>
       <Name>Logger</Name>
