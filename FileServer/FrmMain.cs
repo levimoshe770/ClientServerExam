@@ -12,6 +12,7 @@ using Communicator;
 using DataLayer;
 using CryptoManager;
 using System.Diagnostics;
+using System.Text.RegularExpressions;
 
 namespace FileServer
 {
@@ -89,6 +90,12 @@ namespace FileServer
 
         private void OnAdminLogin(object sender, EventArgs e)
         {
+            if (SqlInjectionAttackSuspected(txtUserName.Text))
+            {
+                MessageBox.Show("SQL injection malicious attack suspected. Go away !");
+                return;
+            }
+
             bool valid = m_UserManager.ValidateUser(
                 txtUserName.Text,
                 CryptoHandler.HashEncode(txtPassword.Text)
@@ -166,6 +173,26 @@ namespace FileServer
         #endregion
 
         #region Methods
+
+        private bool SqlInjectionAttackSuspected(string text)
+        {
+            Regex insertRegex = new Regex(@".*[Ii][Nn][Ss][Ee][Rr][tT]\s+[Ii][nN][tT][oO]\s+[\w\d]+\s+(\(\s*\w+,\s*\w+,\s*\w+,\s*\w+\s*\))?\s*[vV][aA][lL][uU][eE][sS].*");
+
+            Regex dropTblRegex = new Regex(@".*[Dd][Rr][Oo][Pp]\s+[Tt][Aa][Bb][Ll][Ee]\s+.*");
+
+            Regex deleteRegex = new Regex(@".*[Dd][Ee][Ll][Ee][Tt][Ee]\s+[Ff][Rr][Oo][Mm]\s+\w+\s+([Ww][Hh][Ee][Rr][Ee]\s+\w+\s*='\w*')?.*");
+
+            Regex updateRegex = new Regex(@".*[uU][pP][dD][aA][tT][Ee]\s+\w+\s+[Ss][Ee][Tt]\s*\w*=.+");
+
+            if (insertRegex.IsMatch(text) ||
+                dropTblRegex.IsMatch(text) ||
+                deleteRegex.IsMatch(text) ||
+                updateRegex.IsMatch(text))
+                return true;
+
+            return false;
+        }
+
         private void SetAdminLoggedIn()
         {
             txtPassword.Enabled = false;
