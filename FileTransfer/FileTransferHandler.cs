@@ -3,6 +3,7 @@ using ControlMessages;
 using MessageHandler;
 using System;
 using System.IO;
+using System.Threading;
 
 namespace FileTransfer
 {
@@ -24,42 +25,7 @@ namespace FileTransfer
 
         public void SendFileToTheOtherSide(string pFileName)
         {
-            try
-            {
-                FileInfo fileInfo = new FileInfo(pFileName);
-                long size = fileInfo.Length;
-
-                long numOfChunks = size / ChunkSize + (size % ChunkSize > 0 ? 1 : 0);
-
-                DateTime start = DateTime.Now;
-
-                SendFileTransferMsg(pFileName, size, numOfChunks);
-
-                using (FileStream r = new FileStream(pFileName, FileMode.Open, FileAccess.Read, FileShare.None))
-                {
-                    for (int i = 0; i < numOfChunks; i++)
-                    {
-                        long chunkSize = Math.Min(ChunkSize, size - i * ChunkSize);
-                        byte[] chunk = new byte[chunkSize];
-                        int read = r.Read(chunk, 0, (int)chunkSize);
-
-                        SendBlobMessage(chunk);
-
-                        FileTransferStatusEvent?.Invoke(i + 1, (int)numOfChunks, (int)chunkSize);
-
-                        Logger.Logger.Log("Sending chunk {0} out of {1}. Size: {2}", i + 1, numOfChunks, chunkSize);
-                    }
-                }
-
-                SendFileTransferComplete();
-
-                DateTime end = DateTime.Now;
-                Logger.Logger.Log("Time to send file of size {0} is {1}", size, end - start);
-            }
-            catch (Exception e)
-            {
-                Logger.Logger.Log("Send file: {0} - {1}", e.Message, e.ToString());
-            }
+            ThreadPool.QueueUserWorkItem(SendFileToTheOtherSideTh, (object)pFileName);
         }
 
         public void ReceiveFileFromOtherSide(string pMsgId, byte[] pBuffer, string pLocalPath)
@@ -111,6 +77,49 @@ namespace FileTransfer
         #endregion
 
         #region Private
+
+        private void SendFileToTheOtherSideTh(object pFileName)
+        {
+            string fileName = (string)pFileName;
+
+            try
+            {
+                FileInfo fileInfo = new FileInfo(fileName);
+                long size = fileInfo.Length;
+
+                long numOfChunks = size / ChunkSize + (size % ChunkSize > 0 ? 1 : 0);
+
+                DateTime start = DateTime.Now;
+
+                SendFileTransferMsg(fileName, size, numOfChunks);
+
+                using (FileStream r = new FileStream(fileName, FileMode.Open, FileAccess.Read, FileShare.None))
+                {
+                    for (int i = 0; i < numOfChunks; i++)
+                    {
+                        long chunkSize = Math.Min(ChunkSize, size - i * ChunkSize);
+                        byte[] chunk = new byte[chunkSize];
+                        int read = r.Read(chunk, 0, (int)chunkSize);
+
+                        SendBlobMessage(chunk);
+
+                        FileTransferStatusEvent?.Invoke(i + 1, (int)numOfChunks, (int)chunkSize);
+
+                        Logger.Logger.Log("Sending chunk {0} out of {1}. Size: {2}", i + 1, numOfChunks, chunkSize);
+                    }
+                }
+
+                SendFileTransferComplete();
+
+                DateTime end = DateTime.Now;
+                Logger.Logger.Log("Time to send file of size {0} is {1}", size, end - start);
+            }
+            catch (Exception e)
+            {
+                Logger.Logger.Log("Send file: {0} - {1}", e.Message, e.ToString());
+            }
+        }
+
 
         #region Methods
 

@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Diagnostics;
+using FileTransfer;
 
 namespace Client
 {
@@ -129,19 +130,28 @@ namespace Client
 
         private void OnFileTransferStatusUpdate(int pNumOfChunksCompleted, int pTotalNumOfChunks, int pChunkSize)
         {
-            if (m_FileTransferStatus == null)
+            if (InvokeRequired)
             {
-                m_FileTransferStatus = new FileTransferStatus();
-                m_FileTransferStatus.Show();
+                BeginInvoke(new dlgFileTransferStatus(OnFileTransferStatusUpdate), new object[] { pNumOfChunksCompleted, pTotalNumOfChunks, pChunkSize });
             }
-
-            m_FileTransferStatus.PercentageDone = (double)pNumOfChunksCompleted / pTotalNumOfChunks;
-            m_FileTransferStatus.Refresh();
-
-            if (pNumOfChunksCompleted == pTotalNumOfChunks)
+            else
             {
-                m_FileTransferStatus.Close();
-                m_FileTransferStatus = null;
+                if (m_FileTransferStatus == null)
+                {
+                    m_FileTransferStatus = new FileTransferStatus();
+                    m_FileTransferStatus.Show();
+                }
+
+                m_FileTransferStatus.PercentageDone = (double)pNumOfChunksCompleted / pTotalNumOfChunks;
+                m_FileTransferStatus.Refresh();
+
+                if (pNumOfChunksCompleted == pTotalNumOfChunks)
+                {
+                    m_FileTransferStatus.Close();
+                    m_FileTransferStatus = null;
+
+                    PopulateFileList();
+                }
             }
         }
 

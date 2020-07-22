@@ -34,6 +34,7 @@ namespace Client
         {
             pgComplete.Value = 0;
             lblPctg.Text = "0%";
+            BringToFront();
         }
 
         private double m_PercentageDone;

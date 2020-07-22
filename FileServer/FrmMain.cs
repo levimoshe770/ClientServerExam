@@ -134,6 +134,7 @@ namespace FileServer
 
         private void OnFormClosed(object sender, FormClosedEventArgs e)
         {
+            Logger.Logger.Log("Closing... bye for now");
             Process.GetCurrentProcess().Kill();
         }
 
